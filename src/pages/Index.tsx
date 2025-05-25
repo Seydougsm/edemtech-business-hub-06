@@ -6,6 +6,14 @@ import Dashboard from '@/components/dashboard/Dashboard';
 import ServicesManagement from '@/components/services/ServicesManagement';
 import BillingModule from '@/components/billing/BillingModule';
 import FormationsModule from '@/components/formations/FormationsModule';
+import POSModule from '@/components/pos/POSModule';
+import AccountingModule from '@/components/accounting/AccountingModule';
+import StatisticsModule from '@/components/statistics/StatisticsModule';
+import StudentsModule from '@/components/students/StudentsModule';
+import ExpensesModule from '@/components/expenses/ExpensesModule';
+import InventoryModule from '@/components/inventory/InventoryModule';
+import UsersModule from '@/components/users/UsersModule';
+import SettingsModule from '@/components/settings/SettingsModule';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -15,6 +23,8 @@ const Index = () => {
     switch (currentPage) {
       case 'dashboard':
         return <Dashboard />;
+      case 'pos':
+        return <POSModule />;
       case 'services':
         return <ServicesManagement />;
       case 'billing':
@@ -23,26 +33,19 @@ const Index = () => {
       case 'formations':
         return <FormationsModule />;
       case 'accounting':
+        return <AccountingModule />;
       case 'statistics':
-        return <Dashboard />;
+        return <StatisticsModule />;
+      case 'students':
+        return <StudentsModule />;
+      case 'expenses':
+        return <ExpensesModule />;
+      case 'inventory':
+        return <InventoryModule />;
       case 'users':
+        return <UsersModule />;
       case 'settings':
-        return (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {currentPage === 'users' ? 'Gestion des Utilisateurs' : 'Paramètres'}
-            </h1>
-            <p className="text-gray-600 mt-2">
-              {currentPage === 'users' 
-                ? 'Module en développement - Gestion des utilisateurs et des droits d\'accès'
-                : 'Module en développement - Configuration de l\'application'
-              }
-            </p>
-            <div className="mt-8 p-8 bg-blue-50 rounded-lg text-center">
-              <p className="text-blue-800">Cette fonctionnalité sera disponible dans une prochaine version.</p>
-            </div>
-          </div>
-        );
+        return <SettingsModule />;
       default:
         return <Dashboard />;
     }
