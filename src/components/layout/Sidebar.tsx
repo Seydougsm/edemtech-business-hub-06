@@ -9,7 +9,8 @@ import {
   Settings, 
   Users,
   Printer,
-  Calculator
+  Calculator,
+  ShoppingCart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ interface SidebarProps {
 const Sidebar = ({ isOpen, currentPage, onPageChange }: SidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Tableau de bord', icon: Home },
+    { id: 'pos', label: 'Point de Vente', icon: ShoppingCart },
     { id: 'services', label: 'Services & Produits', icon: Package },
     { id: 'billing', label: 'Facturation', icon: FileText },
     { id: 'printing', label: 'Impression/Copie', icon: Printer },
