@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Settings, Building, MapPin, Phone, Mail, Palette, Database, Bell } from 'lucide-react';
+import { Settings, Building, MapPin, Phone, Mail, Palette, Database, Bell, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
