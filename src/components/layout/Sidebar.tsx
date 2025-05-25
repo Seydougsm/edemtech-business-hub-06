@@ -41,8 +41,12 @@ const Sidebar = ({ isOpen, currentPage, onPageChange }: SidebarProps) => {
     )}>
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">ET</span>
+          <div className="w-8 h-8 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/2dd06bf5-eff9-4719-b07a-4f68803e8b05.png" 
+              alt="EDEM TECH SOLUTIONS Logo" 
+              className="w-8 h-8 object-contain"
+            />
           </div>
           {isOpen && (
             <div>
