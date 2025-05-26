@@ -7,6 +7,7 @@ import ServicesManagement from '@/components/services/ServicesManagement';
 import BillingModule from '@/components/billing/BillingModule';
 import FormationsModule from '@/components/formations/FormationsModule';
 import POSModule from '@/components/pos/POSModule';
+import QuotesModule from '@/components/quotes/QuotesModule';
 import AccountingModule from '@/components/accounting/AccountingModule';
 import StatisticsModule from '@/components/statistics/StatisticsModule';
 import StudentsModule from '@/components/students/StudentsModule';
@@ -30,6 +31,8 @@ const Index = () => {
         return <Dashboard />;
       case 'pos':
         return <POSModule />;
+      case 'quotes':
+        return <QuotesModule />;
       case 'services':
         return <ServicesManagement />;
       case 'billing':

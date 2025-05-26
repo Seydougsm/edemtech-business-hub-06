@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { ShoppingCart, User, Minus } from 'lucide-react';
+import { ShoppingCart, User, Minus, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,9 +10,11 @@ import CartSummary from './CartSummary';
 import SearchBar from './SearchBar';
 import ExpenseModal from './ExpenseModal';
 import InvoiceModal from './InvoiceModal';
+import CategoryColorCustomizer from './CategoryColorCustomizer';
 import { useProducts } from '@/hooks/useProducts';
 import { useServices } from '@/hooks/useServices';
 import { useCreateSale } from '@/hooks/useSales';
+import { useCategoryColors } from '@/hooks/useCategoryColors';
 import { toast } from 'sonner';
 
 interface CartItem {
@@ -33,11 +34,13 @@ const POSModule = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [isColorCustomizerOpen, setIsColorCustomizerOpen] = useState(false);
   const [lastSale, setLastSale] = useState<any>(null);
 
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: services = [], isLoading: loadingServices } = useServices();
   const createSaleMutation = useCreateSale();
+  const { categories: categoryColors } = useCategoryColors();
 
   // Combiner services et produits
   const allItems = useMemo(() => {
@@ -194,13 +197,23 @@ const POSModule = () => {
               Interface de vente rapide et intuitive - {allItems.length} articles disponibles
             </p>
           </div>
-          <Button
-            onClick={() => setIsExpenseModalOpen(true)}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            <Minus className="h-4 w-4 mr-2" />
-            Dépenses
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setIsColorCustomizerOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Palette className="h-4 w-4" />
+              Couleurs
+            </Button>
+            <Button
+              onClick={() => setIsExpenseModalOpen(true)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Minus className="h-4 w-4 mr-2" />
+              Dépenses
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -214,7 +227,7 @@ const POSModule = () => {
 
             {/* Category Filter */}
             <CategoryFilter 
-              categories={categories}
+              categories={categoryColors}
               selectedCategory={selectedCategory}
               onCategorySelect={setSelectedCategory}
             />
@@ -224,7 +237,7 @@ const POSModule = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-800">
                   {selectedCategory === 'all' ? 'Tous les articles' : 
-                   categories.find(c => c.id === selectedCategory)?.name}
+                   categoryColors.find(c => c.id === selectedCategory)?.name}
                 </h2>
                 <span className="text-sm text-gray-500">
                   {filteredItems.length} article(s)
@@ -324,6 +337,11 @@ const POSModule = () => {
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         sale={lastSale}
+      />
+
+      <CategoryColorCustomizer
+        isOpen={isColorCustomizerOpen}
+        onClose={() => setIsColorCustomizerOpen(false)}
       />
     </div>
   );
