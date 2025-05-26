@@ -15,10 +15,14 @@ import InventoryModule from '@/components/inventory/InventoryModule';
 import InventoryReportModule from '@/components/inventory/InventoryReportModule';
 import UsersModule from '@/components/users/UsersModule';
 import SettingsModule from '@/components/settings/SettingsModule';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState('dashboard');
+
+  // Activer la synchronisation en temps réel
+  useRealtimeSync();
 
   const renderCurrentPage = () => {
     switch (currentPage) {

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,12 @@ const ExpenseModal = ({ isOpen, onClose }: ExpenseModalProps) => {
     'Autres'
   ];
 
+  const paymentMethods = [
+    { value: 'cash', label: 'Espèces', icon: '💵' },
+    { value: 'bank', label: 'Virement bancaire', icon: '🏦' },
+    { value: 'mobile', label: 'Mobile Money', icon: '📱' }
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -43,18 +49,22 @@ const ExpenseModal = ({ isOpen, onClose }: ExpenseModalProps) => {
       return;
     }
 
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      toast.error('Veuillez entrer un montant valide');
+      return;
+    }
+
     try {
       await createExpenseMutation.mutateAsync({
         description,
-        amount: parseFloat(amount),
+        amount: numericAmount,
         category,
         payment_method: paymentMethod,
         receipt_number: receiptNumber || undefined,
         notes: notes || undefined
       });
 
-      toast.success('Dépense enregistrée avec succès');
-      
       // Reset form
       setDescription('');
       setAmount('');
@@ -65,24 +75,38 @@ const ExpenseModal = ({ isOpen, onClose }: ExpenseModalProps) => {
       onClose();
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement de la dépense:', error);
-      toast.error('Erreur lors de l\'enregistrement de la dépense');
     }
+  };
+
+  const resetForm = () => {
+    setDescription('');
+    setAmount('');
+    setCategory('');
+    setPaymentMethod('cash');
+    setReceiptNumber('');
+    setNotes('');
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-lg mx-4">
-        <CardHeader className="bg-red-600 text-white rounded-t-lg">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <CardHeader className="bg-gradient-to-r from-red-600 to-red-700 text-white rounded-t-lg">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <DollarSign className="h-5 w-5" />
               Enregistrer une Dépense
             </CardTitle>
             <Button
               variant="ghost"
               size="sm"
-              onClick={onClose}
+              onClick={handleClose}
               className="text-white hover:bg-red-700"
             >
               <X className="h-4 w-4" />
@@ -90,102 +114,121 @@ const ExpenseModal = ({ isOpen, onClose }: ExpenseModalProps) => {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Description */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
                 Description *
               </label>
               <Input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Description de la dépense"
+                placeholder="Décrivez la dépense..."
+                className="w-full"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Montant (FCFA) *
-              </label>
-              <Input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0"
-                min="0"
-                step="0.01"
-                required
-              />
+            {/* Montant et Catégorie */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Montant (FCFA) *
+                </label>
+                <Input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0"
+                  min="0"
+                  step="0.01"
+                  className="w-full"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Catégorie *
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  required
+                >
+                  <option value="">Sélectionner une catégorie</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Catégorie *
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                required
-              >
-                <option value="">Sélectionner une catégorie</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            {/* Mode de paiement */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
                 Mode de paiement
               </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'bank' | 'mobile')}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              >
-                <option value="cash">Espèces</option>
-                <option value="bank">Virement bancaire</option>
-                <option value="mobile">Mobile Money</option>
-              </select>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {paymentMethods.map((method) => (
+                  <button
+                    key={method.value}
+                    type="button"
+                    onClick={() => setPaymentMethod(method.value as any)}
+                    className={`p-3 border rounded-lg flex items-center gap-2 transition-all ${
+                      paymentMethod === method.value
+                        ? 'border-red-500 bg-red-50 text-red-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    <span className="text-lg">{method.icon}</span>
+                    <span className="text-sm font-medium">{method.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Numéro de reçu
+            {/* Numéro de reçu */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Numéro de reçu (optionnel)
               </label>
               <Input
                 value={receiptNumber}
                 onChange={(e) => setReceiptNumber(e.target.value)}
-                placeholder="Numéro de reçu (optionnel)"
+                placeholder="Ex: REC-001"
+                className="w-full"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes
+            {/* Notes */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Notes additionnelles (optionnel)
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 rows={3}
-                placeholder="Notes additionnelles (optionnel)"
+                placeholder="Informations supplémentaires..."
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
+            {/* Boutons d'action */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={onClose}
-                className="flex-1"
+                onClick={handleClose}
+                className="flex-1 order-2 sm:order-1"
               >
                 Annuler
               </Button>
               <Button
                 type="submit"
-                className="flex-1 bg-red-600 hover:bg-red-700"
+                className="flex-1 bg-red-600 hover:bg-red-700 order-1 sm:order-2"
                 disabled={createExpenseMutation.isPending}
               >
                 <Save className="h-4 w-4 mr-2" />

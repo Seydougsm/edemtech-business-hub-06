@@ -1,6 +1,7 @@
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SaleItem {
   id: string;
@@ -19,11 +20,65 @@ interface SaleData {
   paymentMethod: 'cash' | 'bank' | 'mobile';
 }
 
+interface Sale {
+  id: string;
+  sale_number: string;
+  customer_name?: string;
+  customer_phone?: string;
+  subtotal: number;
+  discount: number;
+  total: number;
+  payment_method: string;
+  status: string;
+  created_at: string;
+  items?: SaleItem[];
+}
+
+export const useSales = (startDate?: string, endDate?: string) => {
+  return useQuery({
+    queryKey: ['sales', startDate, endDate],
+    queryFn: async () => {
+      console.log('Fetching sales from Supabase...');
+      let query = supabase
+        .from('sales')
+        .select(`
+          *,
+          sale_items (
+            id,
+            product_name,
+            quantity,
+            unit_price,
+            total
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (startDate) {
+        query = query.gte('created_at', startDate);
+      }
+      if (endDate) {
+        query = query.lte('created_at', endDate);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching sales:', error);
+        throw error;
+      }
+      console.log('Sales fetched successfully:', data);
+      return data as Sale[];
+    }
+  });
+};
+
 export const useCreateSale = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (saleData: SaleData) => {
+      console.log('Creating sale:', saleData);
+      
       // Générer le numéro de vente
       const saleNumber = `INV-${Date.now()}`;
       
@@ -41,7 +96,12 @@ export const useCreateSale = () => {
         .select()
         .single();
       
-      if (saleError) throw saleError;
+      if (saleError) {
+        console.error('Error creating sale:', saleError);
+        throw saleError;
+      }
+      
+      console.log('Sale created, now creating sale items...');
       
       // Créer les articles de vente et mettre à jour le stock
       for (const item of saleData.items) {
@@ -57,7 +117,10 @@ export const useCreateSale = () => {
             total: item.price * item.quantity
           });
         
-        if (itemError) throw itemError;
+        if (itemError) {
+          console.error('Error creating sale item:', itemError);
+          throw itemError;
+        }
         
         // Mettre à jour le stock du produit
         const { data: product, error: productError } = await supabase
@@ -66,7 +129,10 @@ export const useCreateSale = () => {
           .eq('id', item.id)
           .single();
         
-        if (productError) throw productError;
+        if (productError) {
+          console.error('Error fetching product stock:', productError);
+          throw productError;
+        }
         
         const newStock = product.stock - item.quantity;
         
@@ -75,7 +141,10 @@ export const useCreateSale = () => {
           .update({ stock: newStock })
           .eq('id', item.id);
         
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Error updating product stock:', updateError);
+          throw updateError;
+        }
         
         // Enregistrer le mouvement d'inventaire
         const { error: movementError } = await supabase
@@ -91,14 +160,24 @@ export const useCreateSale = () => {
             reference_type: 'sale'
           });
         
-        if (movementError) throw movementError;
+        if (movementError) {
+          console.error('Error creating inventory movement:', movementError);
+          throw movementError;
+        }
       }
       
+      console.log('Sale completed successfully:', sale);
       return sale;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory_movements'] });
+      toast.success(`Vente ${data.sale_number} enregistrée avec succès !`);
+    },
+    onError: (error) => {
+      console.error('Error in useCreateSale:', error);
+      toast.error('Erreur lors de l\'enregistrement de la vente');
     }
   });
 };
