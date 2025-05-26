@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ShoppingCart, User } from 'lucide-react';
+import { ShoppingCart, User, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,11 @@ import CategoryFilter from './CategoryFilter';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
 import SearchBar from './SearchBar';
+import ExpenseModal from './ExpenseModal';
+import InvoiceModal from './InvoiceModal';
+import { useProducts } from '@/hooks/useProducts';
+import { useCreateSale } from '@/hooks/useSales';
+import { toast } from 'sonner';
 
 interface CartItem {
   id: string;
@@ -18,33 +23,18 @@ interface CartItem {
   category: string;
 }
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  category: string;
-  stock: number;
-}
-
 const POSModule = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [customerName, setCustomerName] = useState('');
   const [discount, setDiscount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [lastSale, setLastSale] = useState<any>(null);
 
-  const products: Product[] = [
-    { id: '1', name: 'Photocopie N&B A4', price: 25, category: 'photocopie', stock: 1000 },
-    { id: '2', name: 'Photocopie Couleur A4', price: 100, category: 'photocopie', stock: 500 },
-    { id: '3', name: 'Impression A4', price: 150, category: 'impression', stock: 300 },
-    { id: '4', name: 'Saisie document', price: 200, category: 'saisie', stock: 100 },
-    { id: '5', name: 'Ticket Wifi 1h', price: 200, category: 'wifi', stock: 50 },
-    { id: '6', name: 'Rame papier A4', price: 2500, category: 'fourniture', stock: 20 },
-    { id: '7', name: 'Chemise A4', price: 300, category: 'fourniture', stock: 35 },
-    { id: '8', name: 'Photocopie N&B A3', price: 50, category: 'photocopie', stock: 200 },
-    { id: '9', name: 'Clé USB 16GB', price: 8000, category: 'fourniture', stock: 15 },
-    { id: '10', name: 'Ticket Wifi 3h', price: 500, category: 'wifi', stock: 30 },
-  ];
+  const { data: products = [], isLoading } = useProducts();
+  const createSaleMutation = useCreateSale();
 
   const categories = [
     { id: 'all', name: 'Tous', color: 'bg-gray-100' },
@@ -62,7 +52,7 @@ const POSModule = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: any) => {
     const existingItem = cart.find(item => item.id === product.id);
     if (existingItem) {
       setCart(cart.map(item => 
@@ -106,34 +96,62 @@ const POSModule = () => {
     setSearchTerm('');
   };
 
-  const processPayment = () => {
-    // Enhanced payment processing with better UX
-    const receiptData = {
-      items: cart,
-      subtotal,
-      discount,
-      total,
-      customerName,
-      timestamp: new Date().toLocaleString('fr-FR')
-    };
-    
-    console.log('Processing payment:', receiptData);
-    alert(`✅ Paiement de ${total.toLocaleString()} FCFA traité avec succès!\n\nClient: ${customerName || 'Client anonyme'}\nArticles: ${cart.length}\nTotal: ${total.toLocaleString()} FCFA`);
-    clearCart();
+  const processPayment = async () => {
+    if (cart.length === 0) {
+      toast.error('Le panier est vide');
+      return;
+    }
+
+    try {
+      const saleData = {
+        items: cart,
+        subtotal,
+        discount,
+        total,
+        customerName,
+        paymentMethod: 'cash' as const
+      };
+
+      const sale = await createSaleMutation.mutateAsync(saleData);
+      setLastSale({ ...sale, items: cart });
+      
+      toast.success(`Paiement de ${total.toLocaleString()} FCFA traité avec succès!`);
+      clearCart();
+      setIsInvoiceModalOpen(true);
+    } catch (error) {
+      console.error('Erreur lors du traitement du paiement:', error);
+      toast.error('Erreur lors du traitement du paiement');
+    }
   };
 
   const printReceipt = () => {
-    console.log('Printing receipt for cart:', cart);
-    alert('🖨️ Impression du reçu en cours...');
+    if (lastSale) {
+      setIsInvoiceModalOpen(true);
+    } else {
+      toast.error('Aucune vente récente à imprimer');
+    }
   };
+
+  if (isLoading) {
+    return <div className="p-6">Chargement des produits...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="p-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Point de Vente (POS)</h1>
-          <p className="text-gray-600">Interface de vente rapide et intuitive - EDEM TECH SOLUTION</p>
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Point de Vente (POS)</h1>
+            <p className="text-gray-600">Interface de vente rapide et intuitive - EDEM TECH SOLUTION</p>
+          </div>
+          <Button
+            onClick={() => setIsExpenseModalOpen(true)}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            <Minus className="h-4 w-4 mr-2" />
+            Dépenses
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -247,6 +265,17 @@ const POSModule = () => {
           </div>
         </div>
       </div>
+
+      <ExpenseModal
+        isOpen={isExpenseModalOpen}
+        onClose={() => setIsExpenseModalOpen(false)}
+      />
+
+      <InvoiceModal
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        sale={lastSale}
+      />
     </div>
   );
 };

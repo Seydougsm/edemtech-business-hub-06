@@ -10,7 +10,8 @@ import {
   Users,
   Printer,
   Calculator,
-  ShoppingCart
+  ShoppingCart,
+  Archive
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ const Sidebar = ({ isOpen, currentPage, onPageChange }: SidebarProps) => {
     { id: 'printing', label: 'Impression/Copie', icon: Printer },
     { id: 'accounting', label: 'Comptabilité', icon: Calculator },
     { id: 'statistics', label: 'Statistiques', icon: BarChart3 },
+    { id: 'inventory-report', label: 'Inventaire', icon: Archive },
     { id: 'formations', label: 'Formations', icon: GraduationCap },
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'settings', label: 'Paramètres', icon: Settings },

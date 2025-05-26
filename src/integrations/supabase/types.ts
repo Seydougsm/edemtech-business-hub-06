@@ -9,7 +9,248 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          receipt_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          receipt_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          receipt_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          id: string
+          movement_type: string | null
+          new_stock: number
+          previous_stock: number
+          product_id: string | null
+          quantity: number
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          movement_type?: string | null
+          new_stock: number
+          previous_stock: number
+          product_id?: string | null
+          quantity: number
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          movement_type?: string | null
+          new_stock?: number
+          previous_stock?: number
+          product_id?: string | null
+          quantity?: number
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          max_stock: number | null
+          min_stock: number | null
+          name: string
+          price: number
+          stock: number
+          supplier: string | null
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          max_stock?: number | null
+          min_stock?: number | null
+          name: string
+          price: number
+          stock?: number
+          supplier?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          max_stock?: number | null
+          min_stock?: number | null
+          name?: string
+          price?: number
+          stock?: number
+          supplier?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sale_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string | null
+          product_name: string
+          quantity: number
+          sale_id: string | null
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_name: string
+          quantity: number
+          sale_id?: string | null
+          total: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          sale_id?: string | null
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          created_at: string
+          customer_name: string | null
+          customer_phone: string | null
+          discount: number | null
+          id: string
+          payment_method: string | null
+          sale_number: string
+          status: string | null
+          subtotal: number
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount?: number | null
+          id?: string
+          payment_method?: string | null
+          sale_number: string
+          status?: string | null
+          subtotal: number
+          total: number
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount?: number | null
+          id?: string
+          payment_method?: string | null
+          sale_number?: string
+          status?: string | null
+          subtotal?: number
+          total?: number
+        }
+        Relationships: []
+      }
+      system_config: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

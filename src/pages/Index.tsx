@@ -12,6 +12,7 @@ import StatisticsModule from '@/components/statistics/StatisticsModule';
 import StudentsModule from '@/components/students/StudentsModule';
 import ExpensesModule from '@/components/expenses/ExpensesModule';
 import InventoryModule from '@/components/inventory/InventoryModule';
+import InventoryReportModule from '@/components/inventory/InventoryReportModule';
 import UsersModule from '@/components/users/UsersModule';
 import SettingsModule from '@/components/settings/SettingsModule';
 
@@ -42,6 +43,8 @@ const Index = () => {
         return <ExpensesModule />;
       case 'inventory':
         return <InventoryModule />;
+      case 'inventory-report':
+        return <InventoryReportModule />;
       case 'users':
         return <UsersModule />;
       case 'settings':
