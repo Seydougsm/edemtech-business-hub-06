@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLocalStorage } from './useLocalStorage';
 
 interface Expense {
   id: string;
@@ -27,55 +28,91 @@ interface NewExpense {
 }
 
 export const useExpenses = (startDate?: string, endDate?: string) => {
+  const [localExpenses, setLocalExpenses] = useLocalStorage<Expense[]>('expenses', []);
+
   return useQuery({
     queryKey: ['expenses', startDate, endDate],
     queryFn: async () => {
       console.log('Fetching expenses from Supabase...');
-      let query = supabase
-        .from('expenses')
-        .select('*')
-        .order('date', { ascending: false });
-      
-      if (startDate) {
-        query = query.gte('date', startDate);
+      try {
+        let query = supabase
+          .from('expenses')
+          .select('*')
+          .order('date', { ascending: false });
+        
+        if (startDate) {
+          query = query.gte('date', startDate);
+        }
+        if (endDate) {
+          query = query.lte('date', endDate);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('Error fetching expenses, using local data:', error);
+          toast.warn('Utilisation des données locales pour les dépenses');
+          return localExpenses.filter(expense => {
+            if (startDate && expense.date < startDate) return false;
+            if (endDate && expense.date > endDate) return false;
+            return true;
+          });
+        }
+        
+        console.log('Expenses fetched successfully:', data);
+        setLocalExpenses(data || []);
+        return data as Expense[];
+      } catch (error) {
+        console.error('Network error, using local data:', error);
+        toast.warn('Erreur réseau, utilisation des données locales');
+        return localExpenses;
       }
-      if (endDate) {
-        query = query.lte('date', endDate);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error('Error fetching expenses:', error);
-        throw error;
-      }
-      console.log('Expenses fetched successfully:', data);
-      return data as Expense[];
     }
   });
 };
 
 export const useCreateExpense = () => {
   const queryClient = useQueryClient();
+  const [localExpenses, setLocalExpenses] = useLocalStorage<Expense[]>('expenses', []);
   
   return useMutation({
     mutationFn: async (expense: NewExpense) => {
       console.log('Creating expense:', expense);
-      const { data, error } = await supabase
-        .from('expenses')
-        .insert({
-          ...expense,
-          date: expense.date || new Date().toISOString().split('T')[0]
-        })
-        .select()
-        .single();
       
-      if (error) {
-        console.error('Error creating expense:', error);
-        throw error;
+      // Créer localement d'abord
+      const newExpense = {
+        ...expense,
+        id: `local_${Date.now()}`,
+        date: expense.date || new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      setLocalExpenses(prev => [newExpense, ...prev]);
+      
+      try {
+        const { data, error } = await supabase
+          .from('expenses')
+          .insert({
+            ...expense,
+            date: expense.date || new Date().toISOString().split('T')[0]
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error creating expense in database:', error);
+          toast.warn('Dépense sauvegardée localement seulement');
+          return newExpense;
+        }
+        
+        console.log('Expense created successfully:', data);
+        return data;
+      } catch (error) {
+        console.error('Network error, expense saved locally:', error);
+        toast.warn('Dépense sauvegardée localement seulement');
+        return newExpense;
       }
-      console.log('Expense created successfully:', data);
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
@@ -90,27 +127,46 @@ export const useCreateExpense = () => {
 
 export const useUpdateExpense = () => {
   const queryClient = useQueryClient();
+  const [localExpenses, setLocalExpenses] = useLocalStorage<Expense[]>('expenses', []);
   
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Expense> }) => {
       console.log('Updating expense:', id, updates);
-      const { data, error } = await supabase
-        .from('expenses')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
       
-      if (error) {
-        console.error('Error updating expense:', error);
-        throw error;
+      // Mettre à jour localement d'abord
+      setLocalExpenses(prev => 
+        prev.map(expense => 
+          expense.id === id 
+            ? { ...expense, ...updates, updated_at: new Date().toISOString() }
+            : expense
+        )
+      );
+      
+      try {
+        const { data, error } = await supabase
+          .from('expenses')
+          .update(updates)
+          .eq('id', id)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error updating expense in database:', error);
+          toast.warn('Dépense mise à jour localement seulement');
+          return { id, ...updates };
+        }
+        
+        console.log('Expense updated successfully:', data);
+        return data;
+      } catch (error) {
+        console.error('Network error, expense updated locally:', error);
+        toast.warn('Dépense mise à jour localement seulement');
+        return { id, ...updates };
       }
-      console.log('Expense updated successfully:', data);
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      toast.success(`Dépense "${data.description}" mise à jour avec succès !`);
+      toast.success(`Dépense mise à jour avec succès !`);
     },
     onError: (error) => {
       console.error('Error in useUpdateExpense:', error);
@@ -121,20 +177,32 @@ export const useUpdateExpense = () => {
 
 export const useDeleteExpense = () => {
   const queryClient = useQueryClient();
+  const [localExpenses, setLocalExpenses] = useLocalStorage<Expense[]>('expenses', []);
   
   return useMutation({
     mutationFn: async (id: string) => {
       console.log('Deleting expense:', id);
-      const { error } = await supabase
-        .from('expenses')
-        .delete()
-        .eq('id', id);
       
-      if (error) {
-        console.error('Error deleting expense:', error);
-        throw error;
+      // Supprimer localement d'abord
+      setLocalExpenses(prev => prev.filter(expense => expense.id !== id));
+      
+      try {
+        const { error } = await supabase
+          .from('expenses')
+          .delete()
+          .eq('id', id);
+        
+        if (error) {
+          console.error('Error deleting expense from database:', error);
+          toast.warn('Dépense supprimée localement seulement');
+        } else {
+          console.log('Expense deleted successfully');
+        }
+      } catch (error) {
+        console.error('Network error, expense deleted locally:', error);
+        toast.warn('Dépense supprimée localement seulement');
       }
-      console.log('Expense deleted successfully');
+      
       return id;
     },
     onSuccess: () => {

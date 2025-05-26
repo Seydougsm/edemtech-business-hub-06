@@ -26,6 +26,23 @@ export const useRealtimeSync = () => {
       )
       .subscribe();
 
+    // Subscription pour les services
+    const servicesChannel = supabase
+      .channel('services-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'services'
+        },
+        (payload) => {
+          console.log('Services table changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['services'] });
+        }
+      )
+      .subscribe();
+
     // Subscription pour les ventes
     const salesChannel = supabase
       .channel('sales-changes')
@@ -80,6 +97,7 @@ export const useRealtimeSync = () => {
     return () => {
       console.log('Cleaning up realtime subscriptions...');
       supabase.removeChannel(productsChannel);
+      supabase.removeChannel(servicesChannel);
       supabase.removeChannel(salesChannel);
       supabase.removeChannel(expensesChannel);
       supabase.removeChannel(inventoryChannel);

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ShoppingCart, User, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import SearchBar from './SearchBar';
 import ExpenseModal from './ExpenseModal';
 import InvoiceModal from './InvoiceModal';
 import { useProducts } from '@/hooks/useProducts';
+import { useServices } from '@/hooks/useServices';
 import { useCreateSale } from '@/hooks/useSales';
 import { toast } from 'sonner';
 
@@ -21,6 +22,7 @@ interface CartItem {
   price: number;
   quantity: number;
   category: string;
+  type: 'service' | 'product';
 }
 
 const POSModule = () => {
@@ -33,8 +35,27 @@ const POSModule = () => {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [lastSale, setLastSale] = useState<any>(null);
 
-  const { data: products = [], isLoading } = useProducts();
+  const { data: products = [], isLoading: loadingProducts } = useProducts();
+  const { data: services = [], isLoading: loadingServices } = useServices();
   const createSaleMutation = useCreateSale();
+
+  // Combiner services et produits
+  const allItems = useMemo(() => {
+    const serviceItems = services.map(service => ({
+      ...service,
+      stock: undefined,
+      min_stock: undefined,
+      type: 'service' as const
+    }));
+    
+    const productItems = products.map(product => ({
+      ...product,
+      unit: 'unité',
+      type: 'product' as const
+    }));
+    
+    return [...serviceItems, ...productItems];
+  }, [services, products]);
 
   const categories = [
     { id: 'all', name: 'Tous', color: 'bg-gray-100' },
@@ -43,38 +64,64 @@ const POSModule = () => {
     { id: 'saisie', name: 'Saisie', color: 'bg-purple-100' },
     { id: 'wifi', name: 'Wifi', color: 'bg-cyan-100' },
     { id: 'fourniture', name: 'Fournitures', color: 'bg-orange-100' },
+    { id: 'consommables', name: 'Consommables', color: 'bg-pink-100' },
+    { id: 'informatique', name: 'Informatique', color: 'bg-indigo-100' },
   ];
 
-  // Filter products based on category and search term
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter items based on category and search term
+  const filteredItems = allItems.filter(item => {
+    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const addToCart = (product: any) => {
-    const existingItem = cart.find(item => item.id === product.id);
+  const addToCart = (item: any) => {
+    // Vérifier si c'est un produit et s'il a du stock
+    if (item.type === 'product' && item.stock <= 0) {
+      toast.error('Produit en rupture de stock');
+      return;
+    }
+
+    const existingItem = cart.find(cartItem => cartItem.id === item.id);
     if (existingItem) {
-      setCart(cart.map(item => 
-        item.id === product.id 
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
+      // Vérifier si on peut ajouter plus pour les produits
+      if (item.type === 'product' && existingItem.quantity >= item.stock) {
+        toast.error('Stock insuffisant');
+        return;
+      }
+      
+      setCart(cart.map(cartItem => 
+        cartItem.id === item.id 
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
       ));
     } else {
       setCart([...cart, {
-        id: product.id,
-        name: product.name,
-        price: product.price,
+        id: item.id,
+        name: item.name,
+        price: item.price,
         quantity: 1,
-        category: product.category
+        category: item.category,
+        type: item.type
       }]);
     }
+    
+    console.log('Item added to cart:', item.name, 'Type:', item.type);
   };
 
   const updateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeFromCart(id);
     } else {
+      // Vérifier le stock pour les produits
+      const cartItem = cart.find(item => item.id === id);
+      const originalItem = allItems.find(item => item.id === id);
+      
+      if (originalItem?.type === 'product' && originalItem.stock && newQuantity > originalItem.stock) {
+        toast.error('Quantité demandée supérieure au stock disponible');
+        return;
+      }
+      
       setCart(cart.map(item => 
         item.id === id ? { ...item, quantity: newQuantity } : item
       ));
@@ -132,8 +179,8 @@ const POSModule = () => {
     }
   };
 
-  if (isLoading) {
-    return <div className="p-6">Chargement des produits...</div>;
+  if (loadingProducts || loadingServices) {
+    return <div className="p-6">Chargement des produits et services...</div>;
   }
 
   return (
@@ -143,7 +190,9 @@ const POSModule = () => {
         <div className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Point de Vente (POS)</h1>
-            <p className="text-gray-600">Interface de vente rapide et intuitive - EDEM TECH SOLUTION</p>
+            <p className="text-gray-600">
+              Interface de vente rapide et intuitive - {allItems.length} articles disponibles
+            </p>
           </div>
           <Button
             onClick={() => setIsExpenseModalOpen(true)}
@@ -174,16 +223,16 @@ const POSModule = () => {
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-800">
-                  {selectedCategory === 'all' ? 'Tous les produits' : 
+                  {selectedCategory === 'all' ? 'Tous les articles' : 
                    categories.find(c => c.id === selectedCategory)?.name}
                 </h2>
                 <span className="text-sm text-gray-500">
-                  {filteredProducts.length} produit(s)
+                  {filteredItems.length} article(s)
                 </span>
               </div>
-              {filteredProducts.length === 0 ? (
+              {filteredItems.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  <p>Aucun produit trouvé</p>
+                  <p>Aucun article trouvé</p>
                   {searchTerm && (
                     <Button 
                       variant="outline" 
@@ -196,7 +245,7 @@ const POSModule = () => {
                 </div>
               ) : (
                 <ProductGrid 
-                  products={filteredProducts}
+                  products={filteredItems}
                   onAddToCart={addToCart}
                 />
               )}
@@ -233,7 +282,7 @@ const POSModule = () => {
                     <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                       <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-300" />
                       <p>Panier vide</p>
-                      <p className="text-sm">Sélectionnez des produits pour commencer</p>
+                      <p className="text-sm">Sélectionnez des articles pour commencer</p>
                     </div>
                   ) : (
                     <div className="max-h-64 overflow-y-auto space-y-2">
