@@ -48,8 +48,13 @@ export const useFormations = () => {
         }
         
         console.log('Formations fetched successfully:', data);
-        setLocalFormations(data || []);
-        return (data || []) as Formation[];
+        // Transformer les données Supabase pour correspondre aux types attendus
+        const transformedData = (data || []).map(formation => ({
+          ...formation,
+          status: formation.status as 'upcoming' | 'ongoing' | 'completed'
+        }));
+        setLocalFormations(transformedData);
+        return transformedData as Formation[];
       } catch (error) {
         console.error('Network error, using local data:', error);
         toast.error('Erreur réseau, utilisation des données locales');
@@ -97,7 +102,10 @@ export const useCreateFormation = () => {
         }
         
         console.log('Formation created successfully:', data);
-        return data;
+        return {
+          ...data,
+          status: data.status as 'upcoming' | 'ongoing' | 'completed'
+        } as Formation;
       } catch (error) {
         console.error('Network error, formation saved locally:', error);
         toast.error('Erreur réseau, sauvegarde locale seulement');
@@ -147,7 +155,10 @@ export const useUpdateFormation = () => {
         }
         
         console.log('Formation updated successfully:', data);
-        return data;
+        return {
+          ...data,
+          status: data.status as 'upcoming' | 'ongoing' | 'completed'
+        } as Formation;
       } catch (error) {
         console.error('Network error, formation updated locally:', error);
         toast.error('Erreur réseau, modification locale seulement');

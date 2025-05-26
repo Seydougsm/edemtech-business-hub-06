@@ -43,8 +43,13 @@ export const useStudents = () => {
         }
         
         console.log('Students fetched successfully:', data);
-        setLocalStudents(data || []);
-        return (data || []) as Student[];
+        // Transformer les données Supabase pour correspondre aux types attendus
+        const transformedData = (data || []).map(student => ({
+          ...student,
+          status: student.status as 'active' | 'completed' | 'suspended'
+        }));
+        setLocalStudents(transformedData);
+        return transformedData as Student[];
       } catch (error) {
         console.error('Network error, using local data:', error);
         toast.error('Erreur réseau, utilisation des données locales');
@@ -91,7 +96,10 @@ export const useCreateStudent = () => {
         }
         
         console.log('Student created successfully:', data);
-        return data;
+        return {
+          ...data,
+          status: data.status as 'active' | 'completed' | 'suspended'
+        } as Student;
       } catch (error) {
         console.error('Network error, student saved locally:', error);
         toast.error('Erreur réseau, sauvegarde locale seulement');
@@ -141,7 +149,10 @@ export const useUpdateStudent = () => {
         }
         
         console.log('Student updated successfully:', data);
-        return data;
+        return {
+          ...data,
+          status: data.status as 'active' | 'completed' | 'suspended'
+        } as Student;
       } catch (error) {
         console.error('Network error, student updated locally:', error);
         toast.error('Erreur réseau, modification locale seulement');

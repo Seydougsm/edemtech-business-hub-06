@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -62,8 +61,13 @@ export const useStudentEnrollments = () => {
         }
         
         console.log('Student enrollments fetched successfully:', data);
-        setLocalEnrollments(data || []);
-        return (data || []) as StudentEnrollment[];
+        // Transformer les données Supabase pour correspondre aux types attendus
+        const transformedData = (data || []).map(enrollment => ({
+          ...enrollment,
+          status: enrollment.status as 'active' | 'completed' | 'cancelled'
+        }));
+        setLocalEnrollments(transformedData);
+        return transformedData as StudentEnrollment[];
       } catch (error) {
         console.error('Network error, using local data:', error);
         toast.error('Erreur réseau, utilisation des données locales');
@@ -115,7 +119,10 @@ export const useCreateStudentEnrollment = () => {
         }
         
         console.log('Student enrollment created successfully:', data);
-        return data;
+        return {
+          ...data,
+          status: data.status as 'active' | 'completed' | 'cancelled'
+        } as StudentEnrollment;
       } catch (error) {
         console.error('Network error, enrollment saved locally:', error);
         toast.error('Erreur réseau, sauvegarde locale seulement');
@@ -170,7 +177,10 @@ export const useUpdateStudentEnrollment = () => {
         }
         
         console.log('Student enrollment updated successfully:', data);
-        return data;
+        return {
+          ...data,
+          status: data.status as 'active' | 'completed' | 'cancelled'
+        } as StudentEnrollment;
       } catch (error) {
         console.error('Network error, enrollment updated locally:', error);
         toast.error('Erreur réseau, modification locale seulement');
@@ -253,7 +263,11 @@ export const useEnrollmentsByFormation = (formationId: string) => {
         }
         
         console.log('Enrollments by formation fetched successfully:', data);
-        return data || [];
+        const transformedData = (data || []).map(enrollment => ({
+          ...enrollment,
+          status: enrollment.status as 'active' | 'completed' | 'cancelled'
+        }));
+        return transformedData;
       } catch (error) {
         console.error('Network error fetching enrollments by formation:', error);
         return [];

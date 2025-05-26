@@ -43,8 +43,13 @@ export const useServices = () => {
         }
         
         console.log('Services fetched successfully:', data);
-        setLocalServices(data || []);
-        return (data || []) as Service[];
+        // Transformer les données Supabase pour correspondre aux types attendus
+        const transformedData = (data || []).map(service => ({
+          ...service,
+          category: service.category as 'photocopie' | 'saisie' | 'impression' | 'wifi' | 'autre'
+        }));
+        setLocalServices(transformedData);
+        return transformedData as Service[];
       } catch (error) {
         console.error('Network error, using local data:', error);
         toast.error('Erreur réseau, utilisation des données locales');
@@ -86,7 +91,10 @@ export const useCreateService = () => {
         }
         
         console.log('Service created successfully:', data);
-        return data;
+        return {
+          ...data,
+          category: data.category as 'photocopie' | 'saisie' | 'impression' | 'wifi' | 'autre'
+        } as Service;
       } catch (error) {
         console.error('Network error, service saved locally:', error);
         toast.error('Erreur réseau, sauvegarde locale seulement');
@@ -136,7 +144,10 @@ export const useUpdateService = () => {
         }
         
         console.log('Service updated successfully:', data);
-        return data;
+        return {
+          ...data,
+          category: data.category as 'photocopie' | 'saisie' | 'impression' | 'wifi' | 'autre'
+        } as Service;
       } catch (error) {
         console.error('Network error, service updated locally:', error);
         toast.error('Erreur réseau, modification locale seulement');
