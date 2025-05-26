@@ -51,7 +51,7 @@ export const useExpenses = (startDate?: string, endDate?: string) => {
         
         if (error) {
           console.error('Error fetching expenses, using local data:', error);
-          toast.warning('Utilisation des données locales pour les dépenses');
+          toast.error('Erreur lors du chargement, utilisation des données locales');
           return localExpenses.filter(expense => {
             if (startDate && expense.date < startDate) return false;
             if (endDate && expense.date > endDate) return false;
@@ -69,7 +69,7 @@ export const useExpenses = (startDate?: string, endDate?: string) => {
         return formattedData as Expense[];
       } catch (error) {
         console.error('Network error, using local data:', error);
-        toast.warning('Erreur réseau, utilisation des données locales');
+        toast.error('Erreur réseau, utilisation des données locales');
         return localExpenses;
       }
     }
@@ -107,7 +107,7 @@ export const useCreateExpense = () => {
         
         if (error) {
           console.error('Error creating expense in database:', error);
-          toast.warning('Dépense sauvegardée localement seulement');
+          toast.error('Erreur lors de la création, sauvegarde locale seulement');
           return newExpense;
         }
         
@@ -119,7 +119,7 @@ export const useCreateExpense = () => {
         return formattedData;
       } catch (error) {
         console.error('Network error, expense saved locally:', error);
-        toast.warning('Dépense sauvegardée localement seulement');
+        toast.error('Erreur réseau, sauvegarde locale seulement');
         return newExpense;
       }
     },
@@ -161,7 +161,7 @@ export const useUpdateExpense = () => {
         
         if (error) {
           console.error('Error updating expense in database:', error);
-          toast.warning('Dépense mise à jour localement seulement');
+          toast.error('Erreur lors de la mise à jour, modification locale seulement');
           return { id, ...updates };
         }
         
@@ -173,7 +173,7 @@ export const useUpdateExpense = () => {
         return formattedData;
       } catch (error) {
         console.error('Network error, expense updated locally:', error);
-        toast.warning('Dépense mise à jour localement seulement');
+        toast.error('Erreur réseau, modification locale seulement');
         return { id, ...updates };
       }
     },
@@ -207,13 +207,13 @@ export const useDeleteExpense = () => {
         
         if (error) {
           console.error('Error deleting expense from database:', error);
-          toast.warning('Dépense supprimée localement seulement');
+          toast.error('Erreur lors de la suppression, suppression locale seulement');
         } else {
           console.log('Expense deleted successfully');
         }
       } catch (error) {
         console.error('Network error, expense deleted locally:', error);
-        toast.warning('Dépense supprimée localement seulement');
+        toast.error('Erreur réseau, suppression locale seulement');
       }
       
       return id;

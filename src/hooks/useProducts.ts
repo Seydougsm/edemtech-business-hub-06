@@ -44,7 +44,7 @@ export const useProducts = () => {
         
         if (error) {
           console.error('Error fetching products, using local data:', error);
-          toast.warning('Utilisation des données locales pour les produits');
+          toast.error('Erreur lors du chargement, utilisation des données locales');
           return localProducts;
         }
         
@@ -54,7 +54,7 @@ export const useProducts = () => {
         if (data) {
           const lowStockProducts = data.filter(product => product.stock <= (product.min_stock || 0));
           if (lowStockProducts.length > 0) {
-            toast.warning(`${lowStockProducts.length} produit(s) en stock faible!`);
+            toast.error(`${lowStockProducts.length} produit(s) en stock faible!`);
           }
           setLocalProducts(data);
         }
@@ -62,7 +62,7 @@ export const useProducts = () => {
         return data as Product[];
       } catch (error) {
         console.error('Network error, using local data:', error);
-        toast.warning('Erreur réseau, utilisation des données locales');
+        toast.error('Erreur réseau, utilisation des données locales');
         return localProducts;
       }
     }
@@ -102,7 +102,7 @@ export const useCreateProduct = () => {
         
         if (error) {
           console.error('Error creating product in database:', error);
-          toast.warning('Produit sauvegardé localement seulement');
+          toast.error('Erreur lors de la création, sauvegarde locale seulement');
           return newProduct;
         }
         
@@ -110,7 +110,7 @@ export const useCreateProduct = () => {
         return data;
       } catch (error) {
         console.error('Network error, product saved locally:', error);
-        toast.warning('Produit sauvegardé localement seulement');
+        toast.error('Erreur réseau, sauvegarde locale seulement');
         return newProduct;
       }
     },
@@ -141,7 +141,7 @@ export const useUpdateProduct = () => {
             
             // Vérifier si le stock est faible après mise à jour
             if (updates.stock !== undefined && updatedProduct.stock <= updatedProduct.min_stock) {
-              toast.warning(`Stock faible pour "${updatedProduct.name}": ${updatedProduct.stock} restant(s)`);
+              toast.error(`Stock faible pour "${updatedProduct.name}": ${updatedProduct.stock} restant(s)`);
             }
             
             return updatedProduct;
@@ -160,7 +160,7 @@ export const useUpdateProduct = () => {
         
         if (error) {
           console.error('Error updating product in database:', error);
-          toast.warning('Produit mis à jour localement seulement');
+          toast.error('Erreur lors de la mise à jour, modification locale seulement');
           return { id, ...updates };
         }
         
@@ -168,7 +168,7 @@ export const useUpdateProduct = () => {
         return data;
       } catch (error) {
         console.error('Network error, product updated locally:', error);
-        toast.warning('Produit mis à jour localement seulement');
+        toast.error('Erreur réseau, modification locale seulement');
         return { id, ...updates };
       }
     },
@@ -202,13 +202,13 @@ export const useDeleteProduct = () => {
         
         if (error) {
           console.error('Error deleting product from database:', error);
-          toast.warning('Produit supprimé localement seulement');
+          toast.error('Erreur lors de la suppression, suppression locale seulement');
         } else {
           console.log('Product deleted successfully');
         }
       } catch (error) {
         console.error('Network error, product deleted locally:', error);
-        toast.warning('Produit supprimé localement seulement');
+        toast.error('Erreur réseau, suppression locale seulement');
       }
       
       return id;
@@ -241,7 +241,7 @@ export const useUpdateStock = () => {
             
             // Vérifier les alertes de stock
             if (newStock <= product.min_stock) {
-              toast.warning(`Stock critique pour "${product.name}": ${newStock} restant(s) (minimum: ${product.min_stock})`);
+              toast.error(`Stock critique pour "${product.name}": ${newStock} restant(s) (minimum: ${product.min_stock})`);
             }
             
             return updatedProduct;
@@ -260,7 +260,7 @@ export const useUpdateStock = () => {
         
         if (error) {
           console.error('Error updating stock in database:', error);
-          toast.warning('Stock mis à jour localement seulement');
+          toast.error('Erreur lors de la mise à jour du stock, modification locale seulement');
           return updatedProduct;
         }
         
@@ -268,7 +268,7 @@ export const useUpdateStock = () => {
         return data;
       } catch (error) {
         console.error('Network error, stock updated locally:', error);
-        toast.warning('Stock mis à jour localement seulement');
+        toast.error('Erreur réseau, modification locale seulement');
         return updatedProduct;
       }
     },
