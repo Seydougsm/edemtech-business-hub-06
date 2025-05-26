@@ -71,7 +71,15 @@ export const useQuotes = () => {
         console.log('Quotes fetched successfully:', data);
         const transformedData = (data || []).map(quote => ({
           ...quote,
-          status: quote.status as 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired'
+          status: quote.status as 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired',
+          items: quote.quote_items?.map((item: any) => ({
+            id: item.id,
+            name: item.product_name,
+            price: item.unit_price,
+            quantity: item.quantity,
+            category: 'general',
+            type: 'product' as const
+          })) || []
         }));
         setLocalQuotes(transformedData);
         return transformedData as Quote[];
@@ -98,9 +106,9 @@ export const useCreateQuote = () => {
       const newQuote: Quote = {
         id: `local_${Date.now()}`,
         quote_number: quoteNumber,
-        customer_name: quoteData.customer_name || null,
-        customer_phone: quoteData.customer_phone || null,
-        customer_email: quoteData.customer_email || null,
+        customer_name: quoteData.customer_name || undefined,
+        customer_phone: quoteData.customer_phone || undefined,
+        customer_email: quoteData.customer_email || undefined,
         subtotal: quoteData.subtotal,
         discount: quoteData.discount,
         total: quoteData.total,

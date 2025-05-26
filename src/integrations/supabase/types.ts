@@ -223,6 +223,92 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string | null
+          product_name: string
+          quantity: number
+          quote_id: string
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_name: string
+          quantity?: number
+          quote_id: string
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          quote_id?: string
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          discount: number
+          id: string
+          quote_number: string
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          valid_until: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount?: number
+          id?: string
+          quote_number: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          valid_until: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount?: number
+          id?: string
+          quote_number?: string
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
       sale_items: {
         Row: {
           created_at: string

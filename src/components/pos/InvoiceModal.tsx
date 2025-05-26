@@ -18,7 +18,6 @@ const InvoiceModal = ({ isOpen, onClose, sale }: InvoiceModalProps) => {
   };
 
   const currentDate = new Date().toLocaleDateString('fr-FR');
-  const currentTime = new Date().toLocaleTimeString('fr-FR');
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -69,13 +68,17 @@ const InvoiceModal = ({ isOpen, onClose, sale }: InvoiceModalProps) => {
                 <h3 className="font-semibold text-gray-800 print:text-black print:text-sm">FACTURE</h3>
                 <p className="text-sm text-gray-600 print:text-black print:text-xs">N°: {sale.sale_number}</p>
                 <p className="text-sm text-gray-600 print:text-black print:text-xs">Date: {currentDate}</p>
-                <p className="text-sm text-gray-600 print:text-black print:text-xs">Heure: {currentTime}</p>
               </div>
               <div className="text-right">
                 <h3 className="font-semibold text-gray-800 print:text-black print:text-sm">CLIENT</h3>
                 <p className="text-sm text-gray-600 print:text-black print:text-xs">
                   {sale.customer_name || 'Client anonyme'}
                 </p>
+                {sale.customer_phone && (
+                  <p className="text-sm text-gray-600 print:text-black print:text-xs">
+                    Tél: {sale.customer_phone}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -129,8 +132,8 @@ const InvoiceModal = ({ isOpen, onClose, sale }: InvoiceModalProps) => {
 
             {/* Pied de page */}
             <div className="text-center text-sm text-gray-600 print:text-black print:text-xs border-t pt-4 print:pt-2">
-              <p>Merci pour votre confiance !</p>
-              <p>Cette facture est générée automatiquement.</p>
+              <p>Merci pour votre achat !</p>
+              <p>N'hésitez pas à revenir nous voir.</p>
             </div>
           </div>
         </CardContent>

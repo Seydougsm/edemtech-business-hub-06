@@ -13,8 +13,8 @@ interface CategoryColorCustomizerProps {
 
 const CategoryColorCustomizer = ({ isOpen, onClose }: CategoryColorCustomizerProps) => {
   const { categories, updateCategoryColor, resetToDefaults } = useCategoryColors();
-  const [tempColors, setTempColors] = useState(
-    categories.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.color }), {})
+  const [tempColors, setTempColors] = useState<Record<string, string>>(
+    categories.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.color }), {} as Record<string, string>)
   );
 
   const colorOptions = [
@@ -39,7 +39,7 @@ const CategoryColorCustomizer = ({ isOpen, onClose }: CategoryColorCustomizerPro
   const handleReset = () => {
     resetToDefaults();
     setTempColors(
-      categories.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.color }), {})
+      categories.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.color }), {} as Record<string, string>)
     );
     toast.success('Couleurs remises par défaut !');
   };

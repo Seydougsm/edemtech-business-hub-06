@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -180,6 +181,23 @@ export const useRealtimeSync = () => {
       )
       .subscribe();
 
+    // Subscription pour les éléments de devis
+    const quoteItemsChannel = supabase
+      .channel('quote-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quote_items'
+        },
+        (payload) => {
+          console.log('Quote items table changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['quotes'] });
+        }
+      )
+      .subscribe();
+
     return () => {
       console.log('Cleaning up realtime subscriptions...');
       supabase.removeChannel(productsChannel);
@@ -192,6 +210,7 @@ export const useRealtimeSync = () => {
       supabase.removeChannel(enrollmentsChannel);
       supabase.removeChannel(paymentsChannel);
       supabase.removeChannel(quotesChannel);
+      supabase.removeChannel(quoteItemsChannel);
     };
   }, [queryClient]);
 };
