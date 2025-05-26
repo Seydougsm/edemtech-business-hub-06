@@ -44,7 +44,7 @@ export const useProducts = () => {
         
         if (error) {
           console.error('Error fetching products, using local data:', error);
-          toast.warn('Utilisation des données locales pour les produits');
+          toast.warning('Utilisation des données locales pour les produits');
           return localProducts;
         }
         
@@ -52,7 +52,7 @@ export const useProducts = () => {
         
         // Vérifier les alertes de stock
         if (data) {
-          const lowStockProducts = data.filter(product => product.stock <= product.min_stock);
+          const lowStockProducts = data.filter(product => product.stock <= (product.min_stock || 0));
           if (lowStockProducts.length > 0) {
             toast.warning(`${lowStockProducts.length} produit(s) en stock faible!`);
           }
@@ -62,7 +62,7 @@ export const useProducts = () => {
         return data as Product[];
       } catch (error) {
         console.error('Network error, using local data:', error);
-        toast.warn('Erreur réseau, utilisation des données locales');
+        toast.warning('Erreur réseau, utilisation des données locales');
         return localProducts;
       }
     }
@@ -78,7 +78,7 @@ export const useCreateProduct = () => {
       console.log('Creating product:', product);
       
       // Créer localement d'abord
-      const newProduct = {
+      const newProduct: Product = {
         ...product,
         id: `local_${Date.now()}`,
         unit_price: product.unit_price || product.price,
@@ -102,7 +102,7 @@ export const useCreateProduct = () => {
         
         if (error) {
           console.error('Error creating product in database:', error);
-          toast.warn('Produit sauvegardé localement seulement');
+          toast.warning('Produit sauvegardé localement seulement');
           return newProduct;
         }
         
@@ -110,7 +110,7 @@ export const useCreateProduct = () => {
         return data;
       } catch (error) {
         console.error('Network error, product saved locally:', error);
-        toast.warn('Produit sauvegardé localement seulement');
+        toast.warning('Produit sauvegardé localement seulement');
         return newProduct;
       }
     },
@@ -127,7 +127,7 @@ export const useCreateProduct = () => {
 
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
-  const [localProducts, setLocalProducts] = useLocalProducts<Product[]>('products', []);
+  const [localProducts, setLocalProducts] = useLocalStorage<Product[]>('products', []);
   
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Product> }) => {
@@ -160,7 +160,7 @@ export const useUpdateProduct = () => {
         
         if (error) {
           console.error('Error updating product in database:', error);
-          toast.warn('Produit mis à jour localement seulement');
+          toast.warning('Produit mis à jour localement seulement');
           return { id, ...updates };
         }
         
@@ -168,7 +168,7 @@ export const useUpdateProduct = () => {
         return data;
       } catch (error) {
         console.error('Network error, product updated locally:', error);
-        toast.warn('Produit mis à jour localement seulement');
+        toast.warning('Produit mis à jour localement seulement');
         return { id, ...updates };
       }
     },
@@ -202,13 +202,13 @@ export const useDeleteProduct = () => {
         
         if (error) {
           console.error('Error deleting product from database:', error);
-          toast.warn('Produit supprimé localement seulement');
+          toast.warning('Produit supprimé localement seulement');
         } else {
           console.log('Product deleted successfully');
         }
       } catch (error) {
         console.error('Network error, product deleted locally:', error);
-        toast.warn('Produit supprimé localement seulement');
+        toast.warning('Produit supprimé localement seulement');
       }
       
       return id;
@@ -260,7 +260,7 @@ export const useUpdateStock = () => {
         
         if (error) {
           console.error('Error updating stock in database:', error);
-          toast.warn('Stock mis à jour localement seulement');
+          toast.warning('Stock mis à jour localement seulement');
           return updatedProduct;
         }
         
@@ -268,7 +268,7 @@ export const useUpdateStock = () => {
         return data;
       } catch (error) {
         console.error('Network error, stock updated locally:', error);
-        toast.warn('Stock mis à jour localement seulement');
+        toast.warning('Stock mis à jour localement seulement');
         return updatedProduct;
       }
     },

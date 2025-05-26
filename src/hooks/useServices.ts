@@ -1,6 +1,5 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLocalStorage } from './useLocalStorage';
 
@@ -30,27 +29,10 @@ export const useServices = () => {
   return useQuery({
     queryKey: ['services'],
     queryFn: async () => {
-      console.log('Fetching services from Supabase...');
-      try {
-        const { data, error } = await supabase
-          .from('services')
-          .select('*')
-          .order('name');
-        
-        if (error) {
-          console.error('Error fetching services, using local data:', error);
-          toast.warn('Utilisation des données locales pour les services');
-          return localServices;
-        }
-        
-        console.log('Services fetched successfully:', data);
-        setLocalServices(data || []);
-        return data as Service[];
-      } catch (error) {
-        console.error('Network error, using local data:', error);
-        toast.warn('Erreur réseau, utilisation des données locales');
-        return localServices;
-      }
+      console.log('Fetching services from local storage...');
+      // Puisque la table 'services' n'existe pas dans Supabase, on utilise uniquement le stockage local
+      console.log('Services fetched successfully from local storage:', localServices);
+      return localServices;
     }
   });
 };
@@ -63,36 +45,16 @@ export const useCreateService = () => {
     mutationFn: async (service: NewService) => {
       console.log('Creating service:', service);
       
-      // Créer localement d'abord
-      const newService = {
+      const newService: Service = {
         ...service,
-        id: `local_${Date.now()}`,
+        id: `service_${Date.now()}`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
       
       setLocalServices(prev => [...prev, newService]);
-      
-      try {
-        const { data, error } = await supabase
-          .from('services')
-          .insert(service)
-          .select()
-          .single();
-        
-        if (error) {
-          console.error('Error creating service in database:', error);
-          toast.warn('Service sauvegardé localement seulement');
-          return newService;
-        }
-        
-        console.log('Service created successfully:', data);
-        return data;
-      } catch (error) {
-        console.error('Network error, service saved locally:', error);
-        toast.warn('Service sauvegardé localement seulement');
-        return newService;
-      }
+      console.log('Service created successfully:', newService);
+      return newService;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
@@ -113,7 +75,6 @@ export const useUpdateService = () => {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Service> }) => {
       console.log('Updating service:', id, updates);
       
-      // Mettre à jour localement d'abord
       setLocalServices(prev => 
         prev.map(service => 
           service.id === id 
@@ -122,27 +83,8 @@ export const useUpdateService = () => {
         )
       );
       
-      try {
-        const { data, error } = await supabase
-          .from('services')
-          .update(updates)
-          .eq('id', id)
-          .select()
-          .single();
-        
-        if (error) {
-          console.error('Error updating service in database:', error);
-          toast.warn('Service mis à jour localement seulement');
-          return { id, ...updates };
-        }
-        
-        console.log('Service updated successfully:', data);
-        return data;
-      } catch (error) {
-        console.error('Network error, service updated locally:', error);
-        toast.warn('Service mis à jour localement seulement');
-        return { id, ...updates };
-      }
+      console.log('Service updated successfully');
+      return { id, ...updates };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
@@ -163,25 +105,8 @@ export const useDeleteService = () => {
     mutationFn: async (id: string) => {
       console.log('Deleting service:', id);
       
-      // Supprimer localement d'abord
       setLocalServices(prev => prev.filter(service => service.id !== id));
-      
-      try {
-        const { error } = await supabase
-          .from('services')
-          .delete()
-          .eq('id', id);
-        
-        if (error) {
-          console.error('Error deleting service from database:', error);
-          toast.warn('Service supprimé localement seulement');
-        } else {
-          console.log('Service deleted successfully');
-        }
-      } catch (error) {
-        console.error('Network error, service deleted locally:', error);
-        toast.warn('Service supprimé localement seulement');
-      }
+      console.log('Service deleted successfully');
       
       return id;
     },

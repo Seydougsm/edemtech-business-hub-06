@@ -51,7 +51,7 @@ export const useExpenses = (startDate?: string, endDate?: string) => {
         
         if (error) {
           console.error('Error fetching expenses, using local data:', error);
-          toast.warn('Utilisation des données locales pour les dépenses');
+          toast.warning('Utilisation des données locales pour les dépenses');
           return localExpenses.filter(expense => {
             if (startDate && expense.date < startDate) return false;
             if (endDate && expense.date > endDate) return false;
@@ -60,11 +60,16 @@ export const useExpenses = (startDate?: string, endDate?: string) => {
         }
         
         console.log('Expenses fetched successfully:', data);
-        setLocalExpenses(data || []);
-        return data as Expense[];
+        // Convertir les données Supabase en format local
+        const formattedData = (data || []).map(item => ({
+          ...item,
+          payment_method: (item.payment_method || 'cash') as 'cash' | 'bank' | 'mobile'
+        }));
+        setLocalExpenses(formattedData);
+        return formattedData as Expense[];
       } catch (error) {
         console.error('Network error, using local data:', error);
-        toast.warn('Erreur réseau, utilisation des données locales');
+        toast.warning('Erreur réseau, utilisation des données locales');
         return localExpenses;
       }
     }
@@ -80,7 +85,7 @@ export const useCreateExpense = () => {
       console.log('Creating expense:', expense);
       
       // Créer localement d'abord
-      const newExpense = {
+      const newExpense: Expense = {
         ...expense,
         id: `local_${Date.now()}`,
         date: expense.date || new Date().toISOString().split('T')[0],
@@ -102,15 +107,19 @@ export const useCreateExpense = () => {
         
         if (error) {
           console.error('Error creating expense in database:', error);
-          toast.warn('Dépense sauvegardée localement seulement');
+          toast.warning('Dépense sauvegardée localement seulement');
           return newExpense;
         }
         
         console.log('Expense created successfully:', data);
-        return data;
+        const formattedData = {
+          ...data,
+          payment_method: (data.payment_method || 'cash') as 'cash' | 'bank' | 'mobile'
+        };
+        return formattedData;
       } catch (error) {
         console.error('Network error, expense saved locally:', error);
-        toast.warn('Dépense sauvegardée localement seulement');
+        toast.warning('Dépense sauvegardée localement seulement');
         return newExpense;
       }
     },
@@ -152,15 +161,19 @@ export const useUpdateExpense = () => {
         
         if (error) {
           console.error('Error updating expense in database:', error);
-          toast.warn('Dépense mise à jour localement seulement');
+          toast.warning('Dépense mise à jour localement seulement');
           return { id, ...updates };
         }
         
         console.log('Expense updated successfully:', data);
-        return data;
+        const formattedData = {
+          ...data,
+          payment_method: (data.payment_method || 'cash') as 'cash' | 'bank' | 'mobile'
+        };
+        return formattedData;
       } catch (error) {
         console.error('Network error, expense updated locally:', error);
-        toast.warn('Dépense mise à jour localement seulement');
+        toast.warning('Dépense mise à jour localement seulement');
         return { id, ...updates };
       }
     },
@@ -194,13 +207,13 @@ export const useDeleteExpense = () => {
         
         if (error) {
           console.error('Error deleting expense from database:', error);
-          toast.warn('Dépense supprimée localement seulement');
+          toast.warning('Dépense supprimée localement seulement');
         } else {
           console.log('Expense deleted successfully');
         }
       } catch (error) {
         console.error('Network error, expense deleted locally:', error);
-        toast.warn('Dépense supprimée localement seulement');
+        toast.warning('Dépense supprimée localement seulement');
       }
       
       return id;
