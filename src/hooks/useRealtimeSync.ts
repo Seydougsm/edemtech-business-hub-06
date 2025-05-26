@@ -94,6 +94,76 @@ export const useRealtimeSync = () => {
       )
       .subscribe();
 
+    // Subscription pour les étudiants
+    const studentsChannel = supabase
+      .channel('students-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'students'
+        },
+        (payload) => {
+          console.log('Students table changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['students'] });
+        }
+      )
+      .subscribe();
+
+    // Subscription pour les formations
+    const formationsChannel = supabase
+      .channel('formations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'formations'
+        },
+        (payload) => {
+          console.log('Formations table changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['formations'] });
+        }
+      )
+      .subscribe();
+
+    // Subscription pour les inscriptions d'étudiants
+    const enrollmentsChannel = supabase
+      .channel('enrollments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'student_enrollments'
+        },
+        (payload) => {
+          console.log('Student enrollments changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['student_enrollments'] });
+          queryClient.invalidateQueries({ queryKey: ['formations'] });
+        }
+      )
+      .subscribe();
+
+    // Subscription pour les paiements de formation
+    const paymentsChannel = supabase
+      .channel('payments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'formation_payments'
+        },
+        (payload) => {
+          console.log('Formation payments changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['formation_payments'] });
+          queryClient.invalidateQueries({ queryKey: ['student_enrollments'] });
+        }
+      )
+      .subscribe();
+
     return () => {
       console.log('Cleaning up realtime subscriptions...');
       supabase.removeChannel(productsChannel);
@@ -101,6 +171,10 @@ export const useRealtimeSync = () => {
       supabase.removeChannel(salesChannel);
       supabase.removeChannel(expensesChannel);
       supabase.removeChannel(inventoryChannel);
+      supabase.removeChannel(studentsChannel);
+      supabase.removeChannel(formationsChannel);
+      supabase.removeChannel(enrollmentsChannel);
+      supabase.removeChannel(paymentsChannel);
     };
   }, [queryClient]);
 };

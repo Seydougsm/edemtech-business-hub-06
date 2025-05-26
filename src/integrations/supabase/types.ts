@@ -48,6 +48,92 @@ export type Database = {
         }
         Relationships: []
       }
+      formation_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          enrollment_id: string
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          receipt_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          enrollment_id: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          receipt_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          enrollment_id?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          receipt_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formation_payments_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "student_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formations: {
+        Row: {
+          created_at: string
+          current_participants: number
+          description: string | null
+          duration: string
+          id: string
+          max_participants: number
+          price: number
+          start_date: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_participants?: number
+          description?: string | null
+          duration: string
+          id?: string
+          max_participants?: number
+          price: number
+          start_date: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_participants?: number
+          description?: string | null
+          duration?: string
+          id?: string
+          max_participants?: number
+          price?: number
+          start_date?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory_movements: {
         Row: {
           created_at: string
@@ -221,6 +307,123 @@ export type Database = {
           status?: string | null
           subtotal?: number
           total?: number
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          price: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          price: number
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      student_enrollments: {
+        Row: {
+          created_at: string
+          enrollment_date: string
+          formation_id: string
+          id: string
+          paid_amount: number
+          status: string
+          student_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enrollment_date?: string
+          formation_id: string
+          id?: string
+          paid_amount?: number
+          status?: string
+          student_id: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enrollment_date?: string
+          formation_id?: string
+          id?: string
+          paid_amount?: number
+          status?: string
+          student_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_enrollments_formation_id_fkey"
+            columns: ["formation_id"]
+            isOneToOne: false
+            referencedRelation: "formations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          created_at: string
+          email: string | null
+          enrollment_date: string
+          id: string
+          name: string
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          enrollment_date?: string
+          id?: string
+          name: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          enrollment_date?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
