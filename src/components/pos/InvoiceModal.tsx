@@ -46,52 +46,52 @@ const InvoiceModal = ({ isOpen, onClose, sale }: InvoiceModalProps) => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="invoice-content">
+        <CardContent className="p-6 print:p-4">
+          <div className="invoice-content print:block">
             {/* En-tête de l'entreprise */}
-            <div className="text-center mb-6 border-b-2 border-gray-200 pb-4">
-              <h1 className="text-2xl font-bold text-blue-600">EDEM TECH SOLUTION</h1>
-              <p className="text-gray-600">Kara, 2ème vont à droite</p>
-              <p className="text-gray-600">Station CAP Tomdè, Togo</p>
-              <p className="text-gray-600">Tél: +228 98518686</p>
+            <div className="text-center mb-6 border-b-2 border-gray-200 pb-4 print:mb-4 print:pb-2">
+              <h1 className="text-2xl font-bold text-blue-600 print:text-black print:text-xl">EDEM TECH SOLUTION</h1>
+              <p className="text-gray-600 print:text-black print:text-sm">Kara, 2ème vont à droite</p>
+              <p className="text-gray-600 print:text-black print:text-sm">Station CAP Tomdè, Togo</p>
+              <p className="text-gray-600 print:text-black print:text-sm">Tél: +228 98518686</p>
             </div>
 
             {/* Informations de la facture */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-6 print:mb-4 print:gap-2">
               <div>
-                <h3 className="font-semibold text-gray-800">FACTURE</h3>
-                <p className="text-sm text-gray-600">N°: {sale.sale_number}</p>
-                <p className="text-sm text-gray-600">Date: {currentDate}</p>
-                <p className="text-sm text-gray-600">Heure: {currentTime}</p>
+                <h3 className="font-semibold text-gray-800 print:text-black print:text-sm">FACTURE</h3>
+                <p className="text-sm text-gray-600 print:text-black print:text-xs">N°: {sale.sale_number}</p>
+                <p className="text-sm text-gray-600 print:text-black print:text-xs">Date: {currentDate}</p>
+                <p className="text-sm text-gray-600 print:text-black print:text-xs">Heure: {currentTime}</p>
               </div>
               <div className="text-right">
-                <h3 className="font-semibold text-gray-800">CLIENT</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-semibold text-gray-800 print:text-black print:text-sm">CLIENT</h3>
+                <p className="text-sm text-gray-600 print:text-black print:text-xs">
                   {sale.customer_name || 'Client anonyme'}
                 </p>
               </div>
             </div>
 
             {/* Tableau des articles */}
-            <div className="mb-6">
-              <table className="w-full border-collapse border border-gray-300">
+            <div className="mb-6 print:mb-4">
+              <table className="w-full border-collapse border border-gray-300 print:border-black">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border border-gray-300 px-3 py-2 text-left">Article</th>
-                    <th className="border border-gray-300 px-3 py-2 text-center">Qté</th>
-                    <th className="border border-gray-300 px-3 py-2 text-right">Prix Unit.</th>
-                    <th className="border border-gray-300 px-3 py-2 text-right">Total</th>
+                  <tr className="bg-gray-100 print:bg-white">
+                    <th className="border border-gray-300 print:border-black px-3 py-2 print:px-1 print:py-1 text-left print:text-xs">Article</th>
+                    <th className="border border-gray-300 print:border-black px-3 py-2 print:px-1 print:py-1 text-center print:text-xs">Qté</th>
+                    <th className="border border-gray-300 print:border-black px-3 py-2 print:px-1 print:py-1 text-right print:text-xs">Prix Unit.</th>
+                    <th className="border border-gray-300 print:border-black px-3 py-2 print:px-1 print:py-1 text-right print:text-xs">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sale.items?.map((item: any, index: number) => (
                     <tr key={index}>
-                      <td className="border border-gray-300 px-3 py-2">{item.name}</td>
-                      <td className="border border-gray-300 px-3 py-2 text-center">{item.quantity}</td>
-                      <td className="border border-gray-300 px-3 py-2 text-right">
+                      <td className="border border-gray-300 print:border-black px-3 py-2 print:px-1 print:py-1 print:text-xs">{item.name}</td>
+                      <td className="border border-gray-300 print:border-black px-3 py-2 print:px-1 print:py-1 text-center print:text-xs">{item.quantity}</td>
+                      <td className="border border-gray-300 print:border-black px-3 py-2 print:px-1 print:py-1 text-right print:text-xs">
                         {item.price.toLocaleString()} FCFA
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-right">
+                      <td className="border border-gray-300 print:border-black px-3 py-2 print:px-1 print:py-1 text-right print:text-xs">
                         {(item.price * item.quantity).toLocaleString()} FCFA
                       </td>
                     </tr>
@@ -101,19 +101,19 @@ const InvoiceModal = ({ isOpen, onClose, sale }: InvoiceModalProps) => {
             </div>
 
             {/* Totaux */}
-            <div className="flex justify-end mb-6">
-              <div className="w-64">
-                <div className="flex justify-between py-1">
+            <div className="flex justify-end mb-6 print:mb-4">
+              <div className="w-64 print:w-48">
+                <div className="flex justify-between py-1 print:text-xs">
                   <span>Sous-total:</span>
                   <span>{sale.subtotal?.toLocaleString()} FCFA</span>
                 </div>
                 {sale.discount > 0 && (
-                  <div className="flex justify-between py-1">
+                  <div className="flex justify-between py-1 print:text-xs">
                     <span>Remise:</span>
                     <span>-{((sale.subtotal * sale.discount) / 100).toLocaleString()} FCFA</span>
                   </div>
                 )}
-                <div className="flex justify-between py-2 border-t border-gray-300 font-bold text-lg">
+                <div className="flex justify-between py-2 border-t border-gray-300 print:border-black font-bold text-lg print:text-sm">
                   <span>TOTAL:</span>
                   <span>{sale.total?.toLocaleString()} FCFA</span>
                 </div>
@@ -121,33 +121,13 @@ const InvoiceModal = ({ isOpen, onClose, sale }: InvoiceModalProps) => {
             </div>
 
             {/* Pied de page */}
-            <div className="text-center text-sm text-gray-600 border-t pt-4">
+            <div className="text-center text-sm text-gray-600 print:text-black print:text-xs border-t pt-4 print:pt-2">
               <p>Merci pour votre confiance !</p>
               <p>Cette facture est générée automatiquement.</p>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      <style jsx>{`
-        @media print {
-          .print\\:hidden {
-            display: none !important;
-          }
-          body * {
-            visibility: hidden;
-          }
-          .invoice-content, .invoice-content * {
-            visibility: visible;
-          }
-          .invoice-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 };
